@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#1a1a1a"/>
+  
+  <!-- Productivity symbol - checkmark in circle -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#10b981" stroke-width="24"/>
+  
+  <!-- Checkmark -->
+  <path d="M 200 256 L 240 296 L 312 224" fill="none" stroke="#10b981" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Small decorative dots -->
+  <circle cx="150" cy="150" r="8" fill="#10b981" opacity="0.6"/>
+  <circle cx="362" cy="150" r="8" fill="#10b981" opacity="0.6"/>
+  <circle cx="150" cy="362" r="8" fill="#10b981" opacity="0.6"/>
+  <circle cx="362" cy="362" r="8" fill="#10b981" opacity="0.6"/>
+</svg>
+

@@ -1,0 +1,1666 @@
+<rpg-method>
+# Repository Planning Graph (RPG) Method - PRD Template
+
+This PRD follows the RPG methodology from Microsoft Research, separating WHAT (functional) from HOW (structural), then connecting them with explicit dependencies.
+
+## Core Principles
+
+1. **Dual-Semantics**: Think functional (capabilities) AND structural (code organization) separately, then map them
+2. **Explicit Dependencies**: Never assume - always state what depends on what
+3. **Topological Order**: Build foundation first, then layers on top
+4. **Progressive Refinement**: Start broad, refine iteratively
+</rpg-method>
+
+---
+
+<overview>
+<instruction>
+Start with the problem, not the solution. Be specific about:
+- What pain point exists?
+- Who experiences it?
+- Why existing solutions don't work?
+- What success looks like (measurable outcomes)?
+
+Keep this section focused - don't jump into implementation details yet.
+</instruction>
+
+## Problem Statement
+
+Productivity tools are fragmented across multiple apps and platforms, creating friction in daily workflow. Users must switch between separate applications for task management, calendar scheduling, exercise tracking, journaling, and work planning. This fragmentation leads to:
+
+- **Context switching overhead**: Moving between apps disrupts focus and wastes time
+- **Data silos**: Information exists in isolation without cross-functional insights
+- **Lack of unified daily view**: No single "home base" to understand priorities, schedule, and progress at a glance
+- **Work-life boundary confusion**: Tasks and events from different life contexts mix without clear separation
+- **Manual coordination**: Users must manually reconcile tasks, calendar events, and goals across platforms
+- **No automation**: Simple productivity automations require complex integrations or don't exist
+
+Existing solutions either focus on one domain (task management OR calendar OR fitness) or require expensive subscriptions to multiple services. There's no unified, privacy-focused, local-first productivity hub that serves as a daily command center.
+
+## Target Users
+
+**Primary User**: A single individual seeking to optimize their personal productivity workflow. This user:
+
+- Needs a unified view of their day across work and personal contexts
+- Wants to track tasks, schedule work blocks, maintain exercise routines, and journal reflections
+- Values privacy and prefers local-first data storage
+- Desires automation to reduce manual coordination overhead
+- Uses a single device initially (with potential for future multi-device sync)
+- Prefers a Progressive Web App for cross-platform accessibility without app store dependencies
+
+**User Workflow**:
+1. Morning: Opens app to see prioritized tasks, today's schedule, exercise goals, and any overnight updates
+2. Throughout day: Adds tasks, logs exercise progress, checks calendar, writes quick journal entries
+3. Evening: Reviews daily report showing achievements, task completion rates, and progress trends
+4. Weekly: Analyzes patterns, adjusts routines, and plans upcoming week
+
+## Success Metrics
+
+Quantifiable outcomes that indicate the product is solving the problem:
+
+- **Daily Active Use**: User opens the app at least once per day (target: 80%+ of days)
+- **Task Completion Rate**: Percentage of tasks completed on time (target: 70%+)
+- **Exercise Consistency**: Days with exercise logged vs. days with exercise goals (target: 75%+ adherence)
+- **Time to First Value**: User can create and complete a task within 2 minutes of first launch
+- **Dashboard Engagement**: User views dashboard widget at least 3 times per day
+- **Automation Effectiveness**: 60%+ of daily reports generated automatically without user intervention
+- **Work-Life Separation**: User successfully separates work and personal tasks 90%+ of the time using time-based context switching
+- **Data Privacy Satisfaction**: 100% of data stored locally with no external data transmission (except optional Google Calendar sync)
+
+</overview>
+
+---
+
+<functional-decomposition>
+<instruction>
+Now think about CAPABILITIES (what the system DOES), not code structure yet.
+
+Step 1: Identify high-level capability domains
+Step 2: For each capability, enumerate specific features
+Step 3: For each feature, define:
+- Description: What it does in one sentence
+- Inputs: What data/context it needs
+- Outputs: What it produces/returns
+- Behavior: Key logic or transformations
+</instruction>
+
+## Capability Tree
+
+### Capability: Dashboard Management
+The customizable widget-based home screen that serves as the daily command center, providing at-a-glance visibility into tasks, schedule, exercise progress, and journal insights.
+
+#### Feature: Widget System
+- **Description**: Provides a flexible, drag-and-drop widget layout system allowing users to customize their dashboard view
+- **Inputs**: Widget configuration (type, position, size), user preferences, current time/date
+- **Outputs**: Rendered dashboard with arranged widgets, widget state persistence
+- **Behavior**: 
+  - Loads saved widget layout from storage
+  - Renders widgets based on their type (task list, calendar, exercise tracker, journal summary)
+  - Handles drag-and-drop reordering and resizing
+  - Persists layout changes to storage
+  - Supports widget visibility toggles
+
+#### Feature: Time-Based Context Switching
+- **Description**: Automatically separates work and personal content based on current time and user-defined work schedule
+- **Inputs**: Current time, work schedule configuration, task/event timestamps and categories
+- **Outputs**: Filtered task lists and calendar views showing only relevant context (work vs. personal)
+- **Behavior**:
+  - Determines current context (work hours vs. personal time) from work schedule
+  - Filters tasks and calendar events by context
+  - Updates dashboard widgets to show contextually relevant information
+  - Allows manual override to view all content regardless of time
+
+#### Feature: Dashboard Widget Types
+- **Description**: Provides multiple widget types that can be added to the dashboard
+- **Inputs**: Widget type selection, data from respective modules (tasks, calendar, exercise, journal)
+- **Outputs**: Rendered widget components displaying relevant information
+- **Behavior**:
+  - Task List Widget: Shows prioritized tasks for current context
+  - Calendar Widget: Displays today's events and upcoming schedule
+  - Exercise Progress Widget: Shows daily exercise goals and completion status
+  - Journal Summary Widget: Displays recent entries or prompts
+  - Daily Report Widget: Shows yesterday's achievements and today's focus
+  - Quick Actions Widget: Provides shortcuts to common actions (add task, log exercise, write journal)
+
+### Capability: Task Management
+Comprehensive task management system supporting full CRUD operations, recurring tasks, subtasks, dependencies, priorities, tags, time estimates, and time tracking.
+
+#### Feature: Task CRUD Operations
+- **Description**: Create, read, update, and delete tasks with rich metadata
+- **Inputs**: Task data (title, description, due date, priority, tags, time estimate, context), task ID for updates/deletes
+- **Outputs**: Task objects, success/error status
+- **Behavior**:
+  - Creates tasks with required fields (title) and optional metadata
+  - Validates task data (dates, priorities, time estimates)
+  - Stores tasks in IndexedDB with unique IDs
+  - Updates existing tasks while preserving history
+  - Soft-deletes tasks (marks as deleted, retains for history)
+
+#### Feature: Recurring Tasks
+- **Description**: Creates tasks that automatically regenerate based on recurrence patterns
+- **Inputs**: Base task, recurrence pattern (daily, weekly, monthly, custom), end date (optional)
+- **Outputs**: Generated task instances, recurrence metadata
+- **Behavior**:
+  - Defines recurrence patterns (daily, weekly on specific days, monthly on date, custom intervals)
+  - Generates task instances based on pattern
+  - Links instances to parent recurring task
+  - Handles completion of instances (marks instance complete, generates next instance)
+  - Supports pattern modifications (updates all future instances)
+
+#### Feature: Subtasks and Dependencies
+- **Description**: Organizes tasks hierarchically and enforces execution order through dependencies
+- **Inputs**: Parent task ID, subtask data, dependency relationships
+- **Outputs**: Task hierarchy structure, dependency graph
+- **Behavior**:
+  - Creates subtasks linked to parent tasks
+  - Validates dependency chains (prevents circular dependencies)
+  - Blocks task completion if dependencies incomplete
+  - Visualizes dependency relationships in UI
+  - Calculates task readiness based on dependency status
+
+#### Feature: Task Prioritization and Tagging
+- **Description**: Organizes tasks using priority levels and custom tags for filtering and grouping
+- **Inputs**: Task priority (high, medium, low), tag names, task assignments
+- **Outputs**: Filtered task lists, tag-based groupings
+- **Behavior**:
+  - Assigns priority levels to tasks
+  - Creates and manages custom tags
+  - Filters tasks by priority and/or tags
+  - Supports multiple tags per task
+  - Provides tag-based views and statistics
+
+#### Feature: Time Estimates and Tracking
+- **Description**: Allows users to estimate task duration and track actual time spent
+- **Inputs**: Estimated duration, start/stop time tracking events
+- **Outputs**: Time estimates, actual time logged, time tracking statistics
+- **Behavior**:
+  - Stores estimated duration per task
+  - Tracks time spent on tasks (start/stop timer)
+  - Calculates time variance (estimated vs. actual)
+  - Provides time tracking reports
+  - Supports manual time entry
+
+### Capability: Calendar Integration
+Integrates with Google Calendar to sync events, display calendar view, and enable time-based work/life separation.
+
+#### Feature: Google Calendar Authentication
+- **Description**: Authenticates user with Google Calendar API using OAuth 2.0
+- **Inputs**: User credentials, OAuth consent
+- **Outputs**: Access token, refresh token, authentication status
+- **Behavior**:
+  - Initiates OAuth 2.0 flow
+  - Requests calendar read/write scopes
+  - Stores tokens securely (encrypted in IndexedDB)
+  - Handles token refresh automatically
+  - Provides logout/revoke functionality
+
+#### Feature: Calendar Event Sync
+- **Description**: Synchronizes events between Google Calendar and local storage
+- **Inputs**: Google Calendar API events, sync direction (bidirectional), sync frequency
+- **Outputs**: Synced event data, sync status, conflict resolution
+- **Behavior**:
+  - Fetches events from Google Calendar API
+  - Stores events locally in IndexedDB
+  - Detects changes (local vs. remote)
+  - Resolves conflicts (last-write-wins or user choice)
+  - Supports incremental sync (only changed events)
+  - Handles sync errors gracefully
+
+#### Feature: Calendar View
+- **Description**: Displays calendar events in multiple view formats (day, week, month)
+- **Inputs**: Date range, calendar events, view type selection
+- **Outputs**: Rendered calendar view with events
+- **Behavior**:
+  - Renders day/week/month views
+  - Colors events by category (work vs. personal)
+  - Highlights current time and selected date
+  - Supports event filtering by context
+  - Provides event details on click
+
+#### Feature: Time-Based Context Detection
+- **Description**: Determines work vs. personal context based on calendar events and time of day
+- **Inputs**: Current time, calendar events, work schedule configuration
+- **Outputs**: Current context (work/personal), context boundaries
+- **Behavior**:
+  - Analyzes calendar events to infer work hours
+  - Uses work schedule configuration as fallback
+  - Detects context transitions (work to personal, personal to work)
+  - Updates UI to reflect current context
+  - Provides context override option
+
+### Capability: Journal System
+Rich journaling system supporting text entries, structured templates, media attachments, and automatic linking to related tasks and events.
+
+#### Feature: Journal Entry CRUD
+- **Description**: Create, read, update, and delete journal entries with rich content
+- **Inputs**: Entry content (text, media), entry metadata (date, tags, mood), entry ID for updates
+- **Outputs**: Journal entry objects, entry lists
+- **Behavior**:
+  - Creates entries with text content and optional metadata
+  - Stores entries with timestamps
+  - Supports rich text formatting
+  - Attaches media files (images, voice notes)
+  - Provides entry search and filtering
+
+#### Feature: Journal Templates
+- **Description**: Provides structured templates for common journaling patterns
+- **Inputs**: Template selection, template data (gratitude, goals, mood, reflection prompts)
+- **Outputs**: Pre-filled journal entry forms
+- **Behavior**:
+  - Defines template structures (gratitude list, daily goals, mood tracking, reflection prompts)
+  - Pre-fills entry forms with template structure
+  - Allows template customization
+  - Supports template library (user-created and built-in)
+
+#### Feature: Media Attachments
+- **Description**: Attaches images and voice notes to journal entries
+- **Inputs**: Media files (images, audio), entry ID
+- **Outputs**: Stored media references, media previews
+- **Behavior**:
+  - Captures/selects images from device
+  - Records voice notes
+  - Stores media in IndexedDB as blobs
+  - Generates thumbnails for images
+  - Provides media playback/viewing
+
+#### Feature: Auto-Linking
+- **Description**: Automatically links journal entries to related tasks and calendar events
+- **Inputs**: Entry content, task/event data, date proximity
+- **Outputs**: Linked relationships, entry context
+- **Behavior**:
+  - Analyzes entry content for task/event references
+  - Links entries to tasks/events based on date proximity
+  - Displays related content in entry view
+  - Provides navigation between linked items
+
+### Capability: Exercise Tracking
+Tracks exercise routines with custom exercises, daily goals, and incremental progress logging.
+
+#### Feature: Exercise Definition
+- **Description**: Defines custom exercises with metadata
+- **Inputs**: Exercise name, type, unit of measurement (reps, duration, distance, weight)
+- **Outputs**: Exercise objects, exercise library
+- **Behavior**:
+  - Creates exercise definitions
+  - Stores exercises in library
+  - Supports exercise categories
+  - Allows exercise editing and deletion
+
+#### Feature: Daily Exercise Goals
+- **Description**: Sets daily targets for exercises (e.g., "100 push-ups")
+- **Inputs**: Exercise selection, target amount, date
+- **Outputs**: Daily goal objects, goal progress
+- **Behavior**:
+  - Creates daily goals for selected exercises
+  - Tracks progress toward goal
+  - Calculates completion percentage
+  - Resets goals daily or maintains rolling goals
+
+#### Feature: Incremental Progress Logging
+- **Description**: Logs exercise completion in increments (e.g., mark off 10 push-ups at a time)
+- **Inputs**: Exercise selection, amount completed, timestamp
+- **Outputs**: Progress log entries, updated goal progress
+- **Behavior**:
+  - Records incremental completions
+  - Updates goal progress in real-time
+  - Tracks completion history
+  - Provides progress visualization (progress bars, completion status)
+  - Supports bulk logging (mark all as complete)
+
+#### Feature: Exercise History and Analytics
+- **Description**: Tracks exercise history over time and provides analytics
+- **Inputs**: Historical exercise logs, date ranges
+- **Outputs**: Exercise statistics, trends, completion rates
+- **Behavior**:
+  - Aggregates exercise data over time periods
+  - Calculates completion rates
+  - Shows progress trends (graphs, charts)
+  - Identifies patterns (best days, consistency)
+
+### Capability: Work Schedule Management
+Manages work schedules with time blocks, shift patterns, and project-based time allocation.
+
+#### Feature: Work Schedule Configuration
+- **Description**: Defines work hours, shift patterns, and availability windows
+- **Inputs**: Work hours (start/end times), days of week, shift patterns, timezone
+- **Outputs**: Work schedule configuration, schedule validation
+- **Behavior**:
+  - Creates work schedule with start/end times
+  - Defines which days are work days
+  - Supports multiple shift patterns (morning, afternoon, night)
+  - Validates schedule consistency
+  - Stores schedule configuration
+
+#### Feature: Time Block Management
+- **Description**: Creates and manages time blocks for specific activities or projects
+- **Inputs**: Time block definition (start time, duration, activity type, project), recurrence pattern
+- **Outputs**: Time block objects, schedule visualization
+- **Behavior**:
+  - Creates time blocks for activities
+  - Supports recurring time blocks
+  - Visualizes time blocks on calendar
+  - Detects conflicts with existing events
+  - Adjusts time blocks based on availability
+
+#### Feature: Project-Based Time Allocation
+- **Description**: Allocates time blocks to specific projects or work categories
+- **Inputs**: Project definition, time allocation per project, priority
+- **Outputs**: Project time allocations, allocation reports
+- **Behavior**:
+  - Defines projects/work categories
+  - Allocates time blocks to projects
+  - Tracks time spent per project
+  - Provides project time reports
+  - Balances allocations based on priorities
+
+### Capability: Automation Engine
+Provides rule-based automation for task scheduling, categorization, daily reports, and smart notifications.
+
+#### Feature: Rule Engine
+- **Description**: Executes user-defined automation rules based on triggers and conditions
+- **Inputs**: Rule definitions (trigger, condition, action), system events
+- **Outputs**: Executed actions, rule execution logs
+- **Behavior**:
+  - Defines rule structure (trigger → condition → action)
+  - Evaluates rules when triggers fire
+  - Executes actions when conditions met
+  - Logs rule executions
+  - Supports rule enable/disable
+
+#### Feature: Smart Task Scheduling
+- **Description**: Automatically schedules tasks based on due dates, priorities, and available time
+- **Inputs**: Task list, calendar availability, scheduling preferences
+- **Outputs**: Scheduled task time blocks, scheduling conflicts
+- **Behavior**:
+  - Analyzes task priorities and due dates
+  - Finds available time slots in calendar
+  - Schedules tasks into time blocks
+  - Handles scheduling conflicts
+  - Reschedules tasks when priorities change
+
+#### Feature: Task Auto-Categorization
+- **Description**: Automatically categorizes tasks based on keywords, time patterns, and context
+- **Inputs**: Task content, time patterns, user behavior
+- **Outputs**: Categorized tasks, category suggestions
+- **Behavior**:
+  - Analyzes task titles/descriptions for keywords
+  - Learns from user categorization patterns
+  - Suggests categories for new tasks
+  - Auto-assigns categories based on rules
+  - Allows user override
+
+#### Feature: Daily Report Generation
+- **Description**: Generates end-of-day reports summarizing achievements, task completion, and progress
+- **Inputs**: Daily activity data (tasks, exercises, journal entries), report template
+- **Outputs**: Formatted daily report, report statistics
+- **Behavior**:
+  - Aggregates daily activity data
+  - Calculates completion rates and achievements
+  - Identifies improvements and trends
+  - Formats report with insights
+  - Stores reports for historical analysis
+  - Provides report customization options
+
+#### Feature: Smart Notifications
+- **Description**: Sends contextually relevant notifications at optimal times
+- **Inputs**: Notification rules, user context, notification preferences
+- **Outputs**: Notification messages, notification delivery status
+- **Behavior**:
+  - Determines notification timing based on context
+  - Avoids notifications during focus time
+  - Groups related notifications
+  - Respects user preferences (quiet hours, notification types)
+  - Provides notification history
+
+### Capability: Data Management
+Handles local-first data storage, optional cloud sync, and privacy-focused data handling.
+
+#### Feature: IndexedDB Storage Layer
+- **Description**: Provides persistent local storage using IndexedDB for all app data
+- **Inputs**: Data objects (tasks, events, journal entries, etc.), storage operations (create, read, update, delete)
+- **Outputs**: Stored data, operation results, error status
+- **Behavior**:
+  - Creates IndexedDB database with object stores
+  - Implements CRUD operations for all data types
+  - Handles database migrations and versioning
+  - Provides transaction support for atomic operations
+  - Implements data indexing for efficient queries
+
+#### Feature: Data Synchronization
+- **Description**: Synchronizes data across devices (future feature, initially single-device)
+- **Inputs**: Local data changes, sync configuration, network status
+- **Outputs**: Synced data, sync status, conflict resolution
+- **Behavior**:
+  - Detects local data changes
+  - Queues changes for sync
+  - Syncs when online (future: cloud storage)
+  - Resolves conflicts (last-write-wins or merge)
+  - Provides sync status indicators
+
+#### Feature: Data Privacy and Encryption
+- **Description**: Ensures data privacy through local storage and optional encryption
+- **Inputs**: User data, encryption preferences
+- **Outputs**: Encrypted data (if enabled), privacy status
+- **Behavior**:
+  - Stores all data locally (no external transmission except Google Calendar)
+  - Provides optional data encryption at rest
+  - Implements secure token storage for OAuth
+  - Provides data export/import functionality
+  - Allows complete data deletion
+
+#### Feature: Offline-First Architecture
+- **Description**: Ensures app functionality without network connectivity
+- **Inputs**: Network status, cached data, service worker
+- **Outputs**: Offline-capable app, cached resources
+- **Behavior**:
+  - Implements service worker for offline support
+  - Caches app shell and critical resources
+  - Provides offline indicators
+  - Queues operations for when online
+  - Handles offline data access gracefully
+
+</functional-decomposition>
+
+---
+
+<structural-decomposition>
+<instruction>
+NOW think about code organization. Map capabilities to actual file/folder structure.
+
+Rules:
+1. Each capability maps to a module (folder or file)
+2. Features within a capability map to functions/classes
+3. Use clear module boundaries - each module has ONE responsibility
+4. Define what each module exports (public interface)
+</instruction>
+
+## Repository Structure
+
+```
+productivity-app/
+├── public/
+│   ├── manifest.json          # PWA manifest
+│   ├── sw.js                  # Service worker
+│   └── icons/                 # PWA icons
+├── src/
+│   ├── dashboard/             # Maps to: Dashboard Management
+│   │   ├── widgets/           # Widget components
+│   │   │   ├── TaskListWidget.js
+│   │   │   ├── CalendarWidget.js
+│   │   │   ├── ExerciseWidget.js
+│   │   │   ├── JournalWidget.js
+│   │   │   └── ReportWidget.js
+│   │   ├── layout/            # Layout management
+│   │   │   ├── DashboardLayout.js
+│   │   │   └── WidgetGrid.js
+│   │   ├── context/           # Time-based context switching
+│   │   │   └── ContextManager.js
+│   │   └── index.js           # Public exports
+│   ├── tasks/                 # Maps to: Task Management
+│   │   ├── models/            # Task data models
+│   │   │   └── Task.js
+│   │   ├── crud/              # CRUD operations
+│   │   │   └── taskOperations.js
+│   │   ├── recurrence/        # Recurring tasks
+│   │   │   └── recurrenceEngine.js
+│   │   ├── dependencies/      # Task dependencies
+│   │   │   └── dependencyManager.js
+│   │   ├── tags/              # Tagging system
+│   │   │   └── tagManager.js
+│   │   ├── timeTracking/      # Time estimates and tracking
+│   │   │   └── timeTracker.js
+│   │   └── index.js           # Public exports
+│   ├── calendar/              # Maps to: Calendar Integration
+│   │   ├── auth/              # Google Calendar OAuth
+│   │   │   └── googleAuth.js
+│   │   ├── sync/              # Calendar sync
+│   │   │   └── calendarSync.js
+│   │   ├── views/             # Calendar views
+│   │   │   ├── DayView.js
+│   │   │   ├── WeekView.js
+│   │   │   └── MonthView.js
+│   │   └── index.js           # Public exports
+│   ├── journal/               # Maps to: Journal System
+│   │   ├── entries/           # Journal entry CRUD
+│   │   │   └── entryOperations.js
+│   │   ├── templates/         # Journal templates
+│   │   │   └── templateEngine.js
+│   │   ├── media/             # Media attachments
+│   │   │   └── mediaManager.js
+│   │   ├── linking/           # Auto-linking
+│   │   │   └── linkManager.js
+│   │   └── index.js           # Public exports
+│   ├── exercise/              # Maps to: Exercise Tracking
+│   │   ├── definitions/       # Exercise definitions
+│   │   │   └── exerciseLibrary.js
+│   │   ├── goals/             # Daily goals
+│   │   │   └── goalManager.js
+│   │   ├── logging/           # Progress logging
+│   │   │   └── progressLogger.js
+│   │   ├── analytics/          # Exercise analytics
+│   │   │   └── analyticsEngine.js
+│   │   └── index.js           # Public exports
+│   ├── schedule/              # Maps to: Work Schedule Management
+│   │   ├── config/            # Schedule configuration
+│   │   │   └── scheduleConfig.js
+│   │   ├── timeBlocks/        # Time block management
+│   │   │   └── timeBlockManager.js
+│   │   ├── projects/          # Project allocation
+│   │   │   └── projectManager.js
+│   │   └── index.js           # Public exports
+│   ├── automation/           # Maps to: Automation Engine
+│   │   ├── rules/             # Rule engine
+│   │   │   └── ruleEngine.js
+│   │   ├── scheduling/        # Smart scheduling
+│   │   │   └── autoScheduler.js
+│   │   ├── categorization/    # Auto-categorization
+│   │   │   └── categoryEngine.js
+│   │   ├── reports/           # Daily reports
+│   │   │   └── reportGenerator.js
+│   │   ├── notifications/     # Smart notifications
+│   │   │   └── notificationManager.js
+│   │   └── index.js           # Public exports
+│   ├── storage/               # Maps to: Data Management
+│   │   ├── indexeddb/         # IndexedDB layer
+│   │   │   ├── database.js    # DB initialization
+│   │   │   ├── stores/        # Object stores
+│   │   │   │   ├── tasksStore.js
+│   │   │   │   ├── eventsStore.js
+│   │   │   │   ├── journalStore.js
+│   │   │   │   └── exerciseStore.js
+│   │   │   └── migrations/    # DB migrations
+│   │   ├── sync/              # Data sync (future)
+│   │   │   └── syncManager.js
+│   │   ├── encryption/        # Data encryption
+│   │   │   └── encryptionService.js
+│   │   └── index.js           # Public exports
+│   ├── ui/                    # Shared UI components
+│   │   ├── components/        # Reusable components
+│   │   │   ├── Button.js
+│   │   │   ├── Input.js
+│   │   │   ├── Modal.js
+│   │   │   └── Card.js
+│   │   ├── themes/            # Dark theme system
+│   │   │   └── theme.js
+│   │   └── index.js           # Public exports
+│   ├── utils/                 # Utility functions
+│   │   ├── dateUtils.js
+│   │   ├── validation.js
+│   │   └── errors.js
+│   ├── App.js                 # Main app component
+│   └── main.js                # Entry point
+├── tests/                     # Test files
+├── docs/                      # Documentation
+└── package.json
+```
+
+## Module Definitions
+
+### Module: dashboard
+- **Maps to capability**: Dashboard Management
+- **Responsibility**: Provides customizable widget-based dashboard with time-based context switching
+- **File structure**:
+  ```
+  dashboard/
+  ├── widgets/
+  ├── layout/
+  ├── context/
+  └── index.js
+  ```
+- **Exports**:
+  - `DashboardLayout` - Main dashboard component
+  - `WidgetGrid` - Widget arrangement component
+  - `ContextManager` - Time-based context switching logic
+  - `createWidget(type, config)` - Widget factory function
+  - `loadDashboardLayout()` - Loads saved layout
+  - `saveDashboardLayout(layout)` - Saves layout configuration
+
+### Module: tasks
+- **Maps to capability**: Task Management
+- **Responsibility**: Comprehensive task management with CRUD, recurrence, dependencies, priorities, tags, and time tracking
+- **File structure**:
+  ```
+  tasks/
+  ├── models/
+  ├── crud/
+  ├── recurrence/
+  ├── dependencies/
+  ├── tags/
+  ├── timeTracking/
+  └── index.js
+  ```
+- **Exports**:
+  - `createTask(taskData)` - Creates new task
+  - `updateTask(taskId, updates)` - Updates existing task
+  - `deleteTask(taskId)` - Soft-deletes task
+  - `getTasks(filters)` - Retrieves tasks with filters
+  - `createRecurringTask(task, pattern)` - Creates recurring task
+  - `addDependency(taskId, dependsOnId)` - Adds task dependency
+  - `setPriority(taskId, priority)` - Sets task priority
+  - `addTag(taskId, tag)` - Adds tag to task
+  - `startTimeTracking(taskId)` - Starts time tracking
+  - `stopTimeTracking(taskId)` - Stops time tracking
+
+### Module: calendar
+- **Maps to capability**: Calendar Integration
+- **Responsibility**: Google Calendar integration, event sync, and calendar views
+- **File structure**:
+  ```
+  calendar/
+  ├── auth/
+  ├── sync/
+  ├── views/
+  └── index.js
+  ```
+- **Exports**:
+  - `authenticateGoogle()` - Initiates Google OAuth flow
+  - `syncCalendarEvents()` - Syncs events with Google Calendar
+  - `getEvents(dateRange)` - Retrieves events for date range
+  - `createEvent(eventData)` - Creates calendar event
+  - `updateEvent(eventId, updates)` - Updates event
+  - `deleteEvent(eventId)` - Deletes event
+  - `getCurrentContext()` - Determines work/personal context
+
+### Module: journal
+- **Maps to capability**: Journal System
+- **Responsibility**: Journal entries with templates, media, and auto-linking
+- **File structure**:
+  ```
+  journal/
+  ├── entries/
+  ├── templates/
+  ├── media/
+  ├── linking/
+  └── index.js
+  ```
+- **Exports**:
+  - `createEntry(entryData)` - Creates journal entry
+  - `getEntries(filters)` - Retrieves entries
+  - `updateEntry(entryId, updates)` - Updates entry
+  - `deleteEntry(entryId)` - Deletes entry
+  - `getTemplate(templateName)` - Gets template structure
+  - `attachMedia(entryId, mediaFile)` - Attaches media to entry
+  - `linkToTask(entryId, taskId)` - Links entry to task
+  - `linkToEvent(entryId, eventId)` - Links entry to event
+
+### Module: exercise
+- **Maps to capability**: Exercise Tracking
+- **Responsibility**: Exercise definitions, daily goals, and progress tracking
+- **File structure**:
+  ```
+  exercise/
+  ├── definitions/
+  ├── goals/
+  ├── logging/
+  ├── analytics/
+  └── index.js
+  ```
+- **Exports**:
+  - `createExercise(exerciseData)` - Creates exercise definition
+  - `setDailyGoal(exerciseId, target, date)` - Sets daily goal
+  - `logProgress(exerciseId, amount, date)` - Logs exercise progress
+  - `getProgress(exerciseId, dateRange)` - Gets progress data
+  - `getAnalytics(exerciseId, period)` - Gets exercise analytics
+
+### Module: schedule
+- **Maps to capability**: Work Schedule Management
+- **Responsibility**: Work schedule configuration, time blocks, and project allocation
+- **File structure**:
+  ```
+  schedule/
+  ├── config/
+  ├── timeBlocks/
+  ├── projects/
+  └── index.js
+  ```
+- **Exports**:
+  - `setWorkSchedule(config)` - Configures work schedule
+  - `createTimeBlock(blockData)` - Creates time block
+  - `allocateToProject(blockId, projectId)` - Allocates time to project
+  - `getSchedule(dateRange)` - Gets schedule for date range
+  - `isWorkTime(timestamp)` - Checks if timestamp is work time
+
+### Module: automation
+- **Maps to capability**: Automation Engine
+- **Responsibility**: Rule-based automation, smart scheduling, categorization, reports, and notifications
+- **File structure**:
+  ```
+  automation/
+  ├── rules/
+  ├── scheduling/
+  ├── categorization/
+  ├── reports/
+  ├── notifications/
+  └── index.js
+  ```
+- **Exports**:
+  - `createRule(ruleDefinition)` - Creates automation rule
+  - `executeRules(trigger)` - Executes rules for trigger
+  - `scheduleTasks(tasks, preferences)` - Auto-schedules tasks
+  - `categorizeTask(task)` - Auto-categorizes task
+  - `generateDailyReport(date)` - Generates daily report
+  - `sendNotification(notification)` - Sends smart notification
+
+### Module: storage
+- **Maps to capability**: Data Management
+- **Responsibility**: IndexedDB storage, data sync, encryption, and offline support
+- **File structure**:
+  ```
+  storage/
+  ├── indexeddb/
+  ├── sync/
+  ├── encryption/
+  └── index.js
+  ```
+- **Exports**:
+  - `initDatabase()` - Initializes IndexedDB
+  - `getStore(storeName)` - Gets object store reference
+  - `save(storeName, data)` - Saves data to store
+  - `get(storeName, key)` - Gets data from store
+  - `query(storeName, index, value)` - Queries store by index
+  - `delete(storeName, key)` - Deletes data from store
+  - `encryptData(data)` - Encrypts data (if enabled)
+  - `decryptData(encryptedData)` - Decrypts data
+
+</structural-decomposition>
+
+---
+
+<dependency-graph>
+<instruction>
+This is THE CRITICAL SECTION for Task Master parsing.
+
+Define explicit dependencies between modules. This creates the topological order for task execution.
+
+Rules:
+1. List modules in dependency order (foundation first)
+2. For each module, state what it depends on
+3. Foundation modules should have NO dependencies
+4. Every non-foundation module should depend on at least one other module
+5. Think: "What must EXIST before I can build this module?"
+</instruction>
+
+## Dependency Chain
+
+### Foundation Layer (Phase 0)
+No dependencies - these are built first.
+
+- **storage**: Provides data persistence layer for all other modules. Must exist before any data operations.
+- **ui**: Shared UI components and theme system. Required for all UI rendering.
+- **utils**: Utility functions for dates, validation, errors. Used across all modules.
+
+### Data Layer (Phase 1)
+Depends on foundation modules.
+
+- **tasks**: Depends on [storage, utils]
+  - Uses storage for task persistence
+  - Uses utils for date validation and error handling
+
+- **exercise**: Depends on [storage, utils]
+  - Uses storage for exercise data persistence
+  - Uses utils for date calculations
+
+- **journal**: Depends on [storage, utils]
+  - Uses storage for entry persistence and media storage
+  - Uses utils for date handling
+
+- **schedule**: Depends on [storage, utils]
+  - Uses storage for schedule configuration persistence
+  - Uses utils for time calculations
+
+### Integration Layer (Phase 2)
+Depends on data layer and foundation.
+
+- **calendar**: Depends on [storage, utils, schedule]
+  - Uses storage for event persistence
+  - Uses schedule for context detection
+  - Uses utils for date/time operations
+
+### Core Features Layer (Phase 3)
+Depends on data and integration layers.
+
+- **dashboard**: Depends on [tasks, calendar, exercise, journal, schedule, ui, utils]
+  - Aggregates data from all feature modules
+  - Uses ui for widget rendering
+  - Uses schedule for context switching
+
+- **automation**: Depends on [tasks, calendar, exercise, journal, schedule, storage, utils]
+  - Operates on data from all modules
+  - Uses storage for rule persistence
+  - Uses utils for calculations
+
+### Application Layer (Phase 4)
+Depends on all previous layers.
+
+- **App**: Depends on [dashboard, automation, ui, storage]
+  - Orchestrates all modules
+  - Provides main application shell
+  - Handles routing and navigation
+
+</dependency-graph>
+
+---
+
+<implementation-roadmap>
+<instruction>
+Turn the dependency graph into concrete development phases.
+
+Each phase should:
+1. Have clear entry criteria (what must exist before starting)
+2. Contain tasks that can be parallelized (no inter-dependencies within phase)
+3. Have clear exit criteria (how do we know phase is complete?)
+4. Build toward something USABLE (not just infrastructure)
+</instruction>
+
+## Development Phases
+
+### Phase 0: Foundation
+**Goal**: Establish core infrastructure for data storage, UI components, and utilities that all other modules depend on.
+
+**Entry Criteria**: Clean repository, Node.js/npm installed, project initialized
+
+**Tasks**:
+- [ ] Setup PWA project structure (depends on: none)
+  - Acceptance criteria: Project has package.json, build configuration, PWA manifest, service worker skeleton
+  - Test strategy: Verify project builds, manifest validates, service worker registers
+
+- [ ] Implement IndexedDB storage layer (depends on: none)
+  - Acceptance criteria: Database initializes, object stores created, CRUD operations work, migrations supported
+  - Test strategy: Unit tests for all storage operations, migration tests, error handling tests
+
+- [ ] Create UI component library with dark theme (depends on: none)
+  - Acceptance criteria: Button, Input, Modal, Card components render, dark theme applied, components are reusable
+  - Test strategy: Component rendering tests, theme application tests, accessibility tests
+
+- [ ] Implement utility functions (depends on: none)
+  - Acceptance criteria: Date utilities, validation functions, error handlers work correctly
+  - Test strategy: Unit tests for all utility functions, edge case coverage
+
+**Exit Criteria**: 
+- Storage layer can persist and retrieve data
+- UI components render with dark theme
+- Utilities handle common operations
+- All tests pass
+
+**Delivers**: Developers can import and use storage, UI components, and utilities. App shell can render basic UI.
+
+---
+
+### Phase 1: Core Task Management
+**Goal**: Build comprehensive task management system as the core productivity feature.
+
+**Entry Criteria**: Phase 0 complete (storage, UI, utils available)
+
+**Tasks**:
+- [ ] Implement task CRUD operations (depends on: [storage, utils])
+  - Acceptance criteria: Create, read, update, delete tasks work, data persists, validation works
+  - Test strategy: CRUD operation tests, persistence tests, validation tests
+
+- [ ] Build task UI components (depends on: [tasks CRUD, ui])
+  - Acceptance criteria: Task list renders, task forms work, task details display
+  - Test strategy: Component tests, user interaction tests
+
+- [ ] Implement recurring tasks (depends on: [tasks CRUD, utils])
+  - Acceptance criteria: Recurring patterns work, instances generate, completion handles correctly
+  - Test strategy: Recurrence pattern tests, instance generation tests
+
+- [ ] Add subtasks and dependencies (depends on: [tasks CRUD])
+  - Acceptance criteria: Subtasks create, dependencies validate, blocking works
+  - Test strategy: Hierarchy tests, dependency validation tests, circular dependency prevention
+
+- [ ] Implement priority and tagging (depends on: [tasks CRUD])
+  - Acceptance criteria: Priorities assign, tags create/manage, filtering works
+  - Test strategy: Priority tests, tagging tests, filter tests
+
+- [ ] Add time estimates and tracking (depends on: [tasks CRUD, utils])
+  - Acceptance criteria: Estimates store, timer works, time logs persist
+  - Test strategy: Time tracking tests, calculation tests
+
+**Exit Criteria**:
+- Users can create, edit, delete tasks
+- Recurring tasks generate automatically
+- Subtasks and dependencies work correctly
+- Tasks can be prioritized and tagged
+- Time tracking functions properly
+- All task data persists locally
+
+**Delivers**: Fully functional task management system. Users can manage tasks with all core features.
+
+---
+
+### Phase 2: Dashboard and Calendar Integration
+**Goal**: Create customizable dashboard and integrate Google Calendar for unified daily view.
+
+**Entry Criteria**: Phase 1 complete (tasks module functional)
+
+**Tasks**:
+- [ ] Build widget system (depends on: [ui, tasks])
+  - Acceptance criteria: Widgets render, drag-and-drop works, layout persists
+  - Test strategy: Widget rendering tests, layout persistence tests
+
+- [ ] Implement time-based context switching (depends on: [schedule, tasks, calendar])
+  - Acceptance criteria: Context detects correctly, filtering works, override available
+  - Test strategy: Context detection tests, filtering tests
+
+- [ ] Create dashboard widgets (depends on: [widget system, tasks, calendar, exercise, journal])
+  - Acceptance criteria: Task widget, calendar widget, exercise widget, journal widget render with data
+  - Test strategy: Widget data binding tests, update tests
+
+- [ ] Implement Google Calendar OAuth (depends on: [storage, utils])
+  - Acceptance criteria: OAuth flow works, tokens store securely, refresh handles
+  - Test strategy: OAuth flow tests, token storage tests
+
+- [ ] Build calendar sync engine (depends on: [calendar auth, storage])
+  - Acceptance criteria: Events sync, conflicts resolve, sync status shows
+  - Test strategy: Sync tests, conflict resolution tests
+
+- [ ] Create calendar views (depends on: [calendar sync, ui])
+  - Acceptance criteria: Day/week/month views render, events display, navigation works
+  - Test strategy: View rendering tests, event display tests
+
+**Exit Criteria**:
+- Dashboard displays with customizable widgets
+- Context switching separates work/personal content
+- Google Calendar authenticates and syncs
+- Calendar views display events correctly
+- All dashboard data persists
+
+**Delivers**: Functional dashboard with calendar integration. Users see unified daily view with work/life separation.
+
+---
+
+### Phase 3: Journal and Exercise Tracking
+**Goal**: Add journaling and exercise tracking capabilities to complete core productivity features.
+
+**Entry Criteria**: Phase 2 complete (dashboard and calendar functional)
+
+**Tasks**:
+- [ ] Implement journal entry CRUD (depends on: [storage, utils])
+  - Acceptance criteria: Entries create/read/update/delete, rich text works, timestamps correct
+  - Test strategy: CRUD tests, rich text tests
+
+- [ ] Build journal templates (depends on: [journal CRUD])
+  - Acceptance criteria: Templates load, pre-fill forms, customization works
+  - Test strategy: Template loading tests, form pre-fill tests
+
+- [ ] Add media attachments (depends on: [journal CRUD, storage])
+  - Acceptance criteria: Images attach, voice notes record, media stores, previews work
+  - Test strategy: Media upload tests, storage tests, preview tests
+
+- [ ] Implement auto-linking (depends on: [journal CRUD, tasks, calendar])
+  - Acceptance criteria: Entries link to tasks/events, links display, navigation works
+  - Test strategy: Linking logic tests, display tests
+
+- [ ] Create exercise definition system (depends on: [storage, utils])
+  - Acceptance criteria: Exercises create, library manages, categories work
+  - Test strategy: Exercise CRUD tests, library tests
+
+- [ ] Implement daily exercise goals (depends on: [exercise definitions, storage])
+  - Acceptance criteria: Goals set, progress tracks, completion calculates
+  - Test strategy: Goal setting tests, progress tracking tests
+
+- [ ] Build incremental progress logging (depends on: [exercise goals, storage])
+  - Acceptance criteria: Progress logs incrementally, goals update, history tracks
+  - Test strategy: Logging tests, progress calculation tests
+
+- [ ] Add exercise analytics (depends on: [exercise logging, utils])
+  - Acceptance criteria: Statistics calculate, trends show, reports generate
+  - Test strategy: Analytics calculation tests, trend tests
+
+**Exit Criteria**:
+- Journal entries create with templates and media
+- Entries auto-link to related tasks/events
+- Exercise definitions and goals work
+- Progress logs incrementally
+- Analytics display correctly
+- All data persists locally
+
+**Delivers**: Complete journaling and exercise tracking. Users can journal with templates/media and track exercise progress.
+
+---
+
+### Phase 4: Work Schedule and Automation
+**Goal**: Add work schedule management and automation engine for intelligent productivity assistance.
+
+**Entry Criteria**: Phase 3 complete (journal and exercise functional)
+
+**Tasks**:
+- [ ] Implement work schedule configuration (depends on: [storage, utils])
+  - Acceptance criteria: Schedule configures, work hours set, patterns save
+  - Test strategy: Configuration tests, validation tests
+
+- [ ] Build time block management (depends on: [schedule config, calendar])
+  - Acceptance criteria: Time blocks create, conflicts detect, visualization works
+  - Test strategy: Time block tests, conflict detection tests
+
+- [ ] Add project-based allocation (depends on: [time blocks, storage])
+  - Acceptance criteria: Projects define, allocations track, reports generate
+  - Test strategy: Project tests, allocation tests
+
+- [ ] Create automation rule engine (depends on: [tasks, calendar, storage, utils])
+  - Acceptance criteria: Rules define, triggers fire, actions execute, logs record
+  - Test strategy: Rule execution tests, trigger tests, action tests
+
+- [ ] Implement smart task scheduling (depends on: [automation rules, tasks, calendar])
+  - Acceptance criteria: Tasks auto-schedule, conflicts handle, preferences respect
+  - Test strategy: Scheduling algorithm tests, conflict resolution tests
+
+- [ ] Add task auto-categorization (depends on: [automation rules, tasks])
+  - Acceptance criteria: Categories suggest, auto-assign works, learning improves
+  - Test strategy: Categorization tests, learning tests
+
+- [ ] Build daily report generator (depends on: [automation rules, tasks, exercise, journal])
+  - Acceptance criteria: Reports generate, achievements identify, trends show, formatting works
+  - Test strategy: Report generation tests, data aggregation tests
+
+- [ ] Implement smart notifications (depends on: [automation rules, schedule, utils])
+  - Acceptance criteria: Notifications send at right time, context respects, preferences honor
+  - Test strategy: Notification timing tests, context tests
+
+**Exit Criteria**:
+- Work schedule configures and time blocks work
+- Projects allocate time correctly
+- Automation rules execute
+- Tasks auto-schedule intelligently
+- Daily reports generate automatically
+- Smart notifications send appropriately
+- All automation data persists
+
+**Delivers**: Complete automation system. Users benefit from intelligent scheduling, categorization, reports, and notifications.
+
+---
+
+### Phase 5: Polish and Optimization
+**Goal**: Refine user experience, optimize performance, and ensure production readiness.
+
+**Entry Criteria**: Phase 4 complete (all core features functional)
+
+**Tasks**:
+- [ ] Optimize IndexedDB performance (depends on: [storage])
+  - Acceptance criteria: Queries fast, indexes optimized, batch operations efficient
+  - Test strategy: Performance tests, query optimization tests
+
+- [ ] Enhance offline support (depends on: [storage, service worker])
+  - Acceptance criteria: App works offline, data syncs when online, offline indicators show
+  - Test strategy: Offline functionality tests, sync tests
+
+- [ ] Improve error handling and user feedback (depends on: [all modules])
+  - Acceptance criteria: Errors handle gracefully, user messages clear, recovery works
+  - Test strategy: Error scenario tests, user feedback tests
+
+- [ ] Add data export/import (depends on: [storage])
+  - Acceptance criteria: Data exports, imports work, format validates
+  - Test strategy: Export/import tests, format validation tests
+
+- [ ] Implement accessibility features (depends on: [ui, all modules])
+  - Acceptance criteria: Keyboard navigation works, screen reader compatible, ARIA labels correct
+  - Test strategy: Accessibility tests, keyboard navigation tests
+
+- [ ] Performance optimization (depends on: [all modules])
+  - Acceptance criteria: App loads fast, interactions responsive, memory usage reasonable
+  - Test strategy: Performance profiling, load time tests, memory tests
+
+- [ ] Add comprehensive error boundaries (depends on: [all modules])
+  - Acceptance criteria: Errors caught, app doesn't crash, recovery paths exist
+  - Test strategy: Error boundary tests, crash prevention tests
+
+**Exit Criteria**:
+- App performs well under load
+- Offline functionality robust
+- Error handling comprehensive
+- Accessibility standards met
+- Data export/import works
+- Production-ready code quality
+
+**Delivers**: Polished, production-ready productivity app. Users have smooth, reliable experience with all features.
+
+</implementation-roadmap>
+
+---
+
+<test-strategy>
+<instruction>
+Define how testing will be integrated throughout development (TDD approach).
+
+Specify:
+1. Test pyramid ratios (unit vs integration vs e2e)
+2. Coverage requirements
+3. Critical test scenarios
+4. Test generation guidelines for Surgical Test Generator
+</instruction>
+
+## Test Pyramid
+
+```
+        /\
+       /E2E\       ← 10% (End-to-end, slow, comprehensive)
+      /------\
+     /Integration\ ← 30% (Module interactions)
+    /------------\
+   /  Unit Tests  \ ← 60% (Fast, isolated, deterministic)
+  /----------------\
+```
+
+## Coverage Requirements
+- Line coverage: 80% minimum
+- Branch coverage: 75% minimum
+- Function coverage: 85% minimum
+- Statement coverage: 80% minimum
+
+## Critical Test Scenarios
+
+### Storage Module
+**Happy path**:
+- Database initializes successfully
+- Data saves and retrieves correctly
+- Transactions complete atomically
+- Expected: All operations succeed, data persists
+
+**Edge cases**:
+- Database version migration
+- Storage quota exceeded
+- Concurrent access
+- Expected: Graceful handling, errors caught, data integrity maintained
+
+**Error cases**:
+- IndexedDB unavailable
+- Corrupted data
+- Migration failures
+- Expected: Error messages, fallback behavior, data recovery
+
+**Integration points**:
+- Storage used by all feature modules
+- Expected: Consistent API, proper error propagation
+
+### Task Management Module
+**Happy path**:
+- Create task with all fields
+- Update task
+- Complete recurring task (generates next instance)
+- Expected: Tasks persist, operations succeed, UI updates
+
+**Edge cases**:
+- Task with circular dependencies
+- Recurring task with complex pattern
+- Time tracking with overlapping sessions
+- Expected: Validation prevents issues, edge cases handled
+
+**Error cases**:
+- Invalid task data
+- Dependency on non-existent task
+- Storage failure during save
+- Expected: Validation errors, graceful degradation
+
+**Integration points**:
+- Tasks displayed in dashboard
+- Tasks linked to journal entries
+- Tasks scheduled by automation
+- Expected: Data flows correctly, updates propagate
+
+### Calendar Integration Module
+**Happy path**:
+- OAuth flow completes
+- Events sync successfully
+- Calendar views render
+- Expected: Authentication works, sync completes, views display
+
+**Edge cases**:
+- OAuth token expired
+- Sync conflicts (local vs. remote changes)
+- Large number of events
+- Expected: Token refresh, conflict resolution, performance maintained
+
+**Error cases**:
+- Network failure during sync
+- Invalid OAuth credentials
+- API rate limiting
+- Expected: Error handling, retry logic, user feedback
+
+**Integration points**:
+- Calendar events used for context switching
+- Events displayed in dashboard
+- Events linked to journal entries
+- Expected: Integration works, data consistency maintained
+
+### Dashboard Module
+**Happy path**:
+- Dashboard loads with widgets
+- Widgets update with data changes
+- Layout saves and restores
+- Expected: Dashboard renders, widgets functional, layout persists
+
+**Edge cases**:
+- Empty dashboard (no widgets)
+- Widget data unavailable
+- Rapid context switching
+- Expected: Graceful handling, fallback UI, smooth transitions
+
+**Error cases**:
+- Widget render failure
+- Layout save failure
+- Data fetch errors
+- Expected: Error boundaries catch, fallback widgets, user notified
+
+**Integration points**:
+- Dashboard aggregates data from all modules
+- Context switching affects all widgets
+- Expected: Data aggregation works, context switching consistent
+
+### Automation Module
+**Happy path**:
+- Rule executes on trigger
+- Task auto-schedules successfully
+- Daily report generates
+- Expected: Rules fire, actions execute, reports create
+
+**Edge cases**:
+- Multiple rules for same trigger
+- Conflicting automation actions
+- Report generation with incomplete data
+- Expected: Rule priority handles conflicts, graceful degradation
+
+**Error cases**:
+- Invalid rule definition
+- Action execution failure
+- Report generation failure
+- Expected: Validation errors, error logging, user notification
+
+**Integration points**:
+- Automation operates on all feature modules
+- Rules persist in storage
+- Expected: Cross-module operations work, persistence reliable
+
+## Test Generation Guidelines
+
+When generating tests during RED phase of TDD:
+
+1. **Start with happy path**: Always test the primary use case first
+2. **Cover edge cases**: Test boundary conditions, empty states, maximum values
+3. **Test error handling**: Verify graceful degradation and error messages
+4. **Integration focus**: Test module interactions, not just isolated functions
+5. **Performance considerations**: Include tests for large datasets, rapid operations
+6. **Accessibility**: Test keyboard navigation, screen reader compatibility
+7. **Offline scenarios**: Test behavior when network unavailable
+8. **Data integrity**: Verify data consistency across operations
+
+**Test naming convention**: `describe('Module/Feature', () => { it('should [expected behavior] when [condition]', ...) })`
+
+**Mock strategy**: 
+- Mock external APIs (Google Calendar)
+- Mock IndexedDB for unit tests (use test database for integration)
+- Mock time/date for deterministic tests
+- Use real implementations for integration tests
+
+</test-strategy>
+
+---
+
+<architecture>
+<instruction>
+Describe technical architecture, data models, and key design decisions.
+
+Keep this section AFTER functional/structural decomposition - implementation details come after understanding structure.
+</instruction>
+
+## System Components
+
+### Frontend Architecture
+- **Framework**: React (or Vue.js/Svelte) for component-based UI
+- **State Management**: Context API or Zustand for local state, IndexedDB for persistence
+- **Routing**: React Router (or framework equivalent) for navigation
+- **Styling**: CSS-in-JS or Tailwind CSS with dark theme support
+- **Build Tool**: Vite or Webpack for bundling and PWA generation
+
+### PWA Infrastructure
+- **Service Worker**: Handles offline caching, background sync, push notifications
+- **Web App Manifest**: Defines app metadata, icons, display mode
+- **Cache Strategy**: Cache-first for static assets, network-first for API calls, stale-while-revalidate for data
+
+### Data Layer
+- **Primary Storage**: IndexedDB for structured data (tasks, events, journal entries, exercises)
+- **Cache Storage**: Service Worker Cache API for app shell and static assets
+- **Session Storage**: Temporary UI state (current view, filters)
+- **Local Storage**: User preferences, theme settings (minimal use)
+
+### External Integrations
+- **Google Calendar API**: RESTful API for calendar sync (OAuth 2.0)
+- **Future**: Optional cloud storage for multi-device sync
+
+## Data Models
+
+### Task Model
+```javascript
+{
+  id: string (UUID),
+  title: string (required),
+  description: string (optional),
+  dueDate: Date (optional),
+  priority: 'high' | 'medium' | 'low',
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled',
+  context: 'work' | 'personal',
+  tags: string[],
+  timeEstimate: number (minutes),
+  timeSpent: number (minutes),
+  parentId: string (optional, for subtasks),
+  dependencies: string[] (task IDs),
+  recurrence: {
+    pattern: 'daily' | 'weekly' | 'monthly' | 'custom',
+    interval: number,
+    daysOfWeek: number[] (for weekly),
+    endDate: Date (optional)
+  } (optional),
+  createdAt: Date,
+  updatedAt: Date,
+  completedAt: Date (optional),
+  deletedAt: Date (optional, for soft delete)
+}
+```
+
+### Calendar Event Model
+```javascript
+{
+  id: string (UUID),
+  googleEventId: string (optional, for synced events),
+  title: string,
+  startTime: Date,
+  endTime: Date,
+  description: string (optional),
+  location: string (optional),
+  context: 'work' | 'personal',
+  color: string (optional),
+  synced: boolean,
+  lastSyncedAt: Date (optional),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Journal Entry Model
+```javascript
+{
+  id: string (UUID),
+  content: string (rich text),
+  date: Date,
+  template: string (optional, template name),
+  mood: string (optional),
+  tags: string[],
+  media: {
+    images: string[] (blob URLs),
+    audio: string[] (blob URLs)
+  },
+  linkedTasks: string[] (task IDs),
+  linkedEvents: string[] (event IDs),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Exercise Model
+```javascript
+{
+  id: string (UUID),
+  name: string,
+  type: 'reps' | 'duration' | 'distance' | 'weight',
+  unit: string,
+  category: string (optional),
+  createdAt: Date
+}
+
+ExerciseGoal: {
+  id: string (UUID),
+  exerciseId: string,
+  target: number,
+  date: Date,
+  completed: number,
+  createdAt: Date
+}
+
+ExerciseLog: {
+  id: string (UUID),
+  exerciseId: string,
+  amount: number,
+  timestamp: Date,
+  goalId: string (optional, links to goal)
+}
+```
+
+### Work Schedule Model
+```javascript
+{
+  id: string (UUID),
+  workDays: number[] (0-6, Sunday-Saturday),
+  workHours: {
+    start: string (HH:mm),
+    end: string (HH:mm)
+  },
+  timezone: string,
+  shifts: {
+    morning: { start: string, end: string },
+    afternoon: { start: string, end: string },
+    night: { start: string, end: string }
+  } (optional),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Automation Rule Model
+```javascript
+{
+  id: string (UUID),
+  name: string,
+  enabled: boolean,
+  trigger: {
+    type: 'task-created' | 'task-completed' | 'time-based' | 'event-based',
+    condition: object
+  },
+  condition: {
+    type: 'all' | 'any',
+    rules: object[]
+  } (optional),
+  action: {
+    type: 'schedule-task' | 'categorize-task' | 'send-notification' | 'generate-report',
+    params: object
+  },
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Technology Stack
+
+**Decision: Progressive Web App (PWA)**
+- **Rationale**: Cross-platform compatibility without app stores, offline-first capability, easy updates
+- **Trade-offs**: Limited native device features, browser compatibility considerations
+- **Alternatives considered**: Native apps (too complex for MVP), Electron (heavier, desktop-focused)
+
+**Decision: IndexedDB for Storage**
+- **Rationale**: Structured data storage, large capacity, asynchronous API, works offline
+- **Trade-offs**: More complex than localStorage, requires migrations
+- **Alternatives considered**: localStorage (too limited), WebSQL (deprecated)
+
+**Decision: React for UI Framework**
+- **Rationale**: Component reusability, strong ecosystem, good PWA support
+- **Trade-offs**: Learning curve, bundle size
+- **Alternatives considered**: Vue.js (good alternative), Svelte (less ecosystem), Vanilla JS (too low-level)
+
+**Decision: Dark Theme First**
+- **Rationale**: User preference, modern aesthetic, reduces eye strain
+- **Trade-offs**: Need to ensure contrast and readability
+- **Alternatives considered**: Light theme (user requested dark), theme switching (future enhancement)
+
+**Decision: Local-First Architecture**
+- **Rationale**: Privacy, offline capability, performance, single-user focus
+- **Trade-offs**: No multi-device sync initially, data loss risk if device fails
+- **Alternatives considered**: Cloud-first (privacy concerns), hybrid (complexity)
+
+**Decision: Google Calendar API Integration**
+- **Rationale**: User requirement, widely used, good API documentation
+- **Trade-offs**: Requires OAuth, external dependency
+- **Alternatives considered**: iCal import/export (one-way, limited), Outlook API (not requested)
+
+</architecture>
+
+---
+
+<risks>
+<instruction>
+Identify risks that could derail development and how to mitigate them.
+
+Categories:
+- Technical risks (complexity, unknowns)
+- Dependency risks (blocking issues)
+- Scope risks (creep, underestimation)
+</instruction>
+
+## Technical Risks
+
+**Risk**: IndexedDB complexity and migration management
+- **Impact**: High - Core functionality depends on reliable storage
+- **Likelihood**: Medium
+- **Mitigation**: Use abstraction layer (idb library), thorough testing, incremental migrations
+- **Fallback**: Implement localStorage fallback for critical data, migrate to IndexedDB later
+
+**Risk**: Google Calendar API rate limiting and quota restrictions
+- **Impact**: Medium - Calendar sync may be throttled
+- **Likelihood**: Low (for single user)
+- **Mitigation**: Implement request queuing, respect rate limits, cache responses
+- **Fallback**: Reduce sync frequency, manual sync option
+
+**Risk**: Service Worker complexity and browser compatibility
+- **Impact**: Medium - Offline functionality critical
+- **Likelihood**: Low (modern browsers support well)
+- **Mitigation**: Use Workbox library, test across browsers, progressive enhancement
+- **Fallback**: App works online-only if service worker fails
+
+**Risk**: Automation rule engine complexity
+- **Impact**: Medium - Core value proposition
+- **Likelihood**: Medium
+- **Mitigation**: Start with simple rules, iterate based on feedback, thorough testing
+- **Fallback**: Manual operations if automation fails
+
+**Risk**: Performance with large datasets
+- **Impact**: Medium - User experience degradation
+- **Likelihood**: Medium (as data accumulates)
+- **Mitigation**: Implement pagination, lazy loading, data archiving, index optimization
+- **Fallback**: Data export/cleanup tools, performance warnings
+
+## Dependency Risks
+
+**Risk**: Google Calendar API changes or deprecation
+- **Impact**: High - Core feature broken
+- **Likelihood**: Low
+- **Mitigation**: Monitor API changes, version pinning, abstraction layer
+- **Fallback**: Switch to alternative calendar provider, manual import/export
+
+**Risk**: Browser IndexedDB implementation differences
+- **Impact**: Medium - Data inconsistency
+- **Likelihood**: Low (standards-compliant browsers)
+- **Mitigation**: Test across browsers, use polyfills if needed, feature detection
+- **Fallback**: Browser-specific workarounds, user notification
+
+## Scope Risks
+
+**Risk**: Feature creep - adding too many features before MVP
+- **Impact**: High - Delayed delivery, complexity explosion
+- **Likelihood**: Medium
+- **Mitigation**: Strict MVP definition, phase-based development, feature freeze periods
+- **Fallback**: Defer non-essential features to post-MVP phases
+
+**Risk**: Underestimating automation complexity
+- **Impact**: Medium - Core feature incomplete
+- **Likelihood**: Medium
+- **Mitigation**: Research automation patterns, start simple, iterative enhancement
+- **Fallback**: Manual operations, basic automation only
+
+**Risk**: Work schedule management research gaps
+- **Impact**: Medium - Feature may not meet user needs
+- **Likelihood**: Medium
+- **Mitigation**: User feedback loops, iterative design, research best practices
+- **Fallback**: Simple time block system, enhance based on usage
+
+</risks>
+
+---
+
+<appendix>
+## References
+
+- Time Blocking Best Practices: Reclaim.ai time blocking guide
+- PWA Offline Storage: web.dev PWA offline data guide
+- Google Calendar API: developers.google.com/workspace/calendar/api
+- IndexedDB Best Practices: MDN IndexedDB documentation
+- Daily Productivity Reports: Productivity metrics and reporting patterns
+- Exercise Tracking UX: Fitness app design patterns and incremental progress tracking
+
+## Glossary
+
+- **PWA**: Progressive Web App - web app with native app-like capabilities
+- **IndexedDB**: Browser-based NoSQL database for client-side storage
+- **Service Worker**: Background script enabling offline functionality and caching
+- **Time Blocking**: Scheduling technique dividing day into dedicated time chunks
+- **Context Switching**: Changing between work and personal modes based on time
+- **Recurring Task**: Task that automatically generates instances based on pattern
+- **Widget**: Self-contained UI component displaying specific information
+- **OAuth 2.0**: Authentication protocol for secure API access
+- **Soft Delete**: Marking data as deleted while retaining for history
+
+## Open Questions
+
+1. **Work Schedule Complexity**: What level of shift pattern complexity is needed? (Research needed)
+2. **Multi-Device Sync**: When should cloud sync be implemented? (Post-MVP)
+3. **Journal Templates**: Which templates are most valuable? (User feedback needed)
+4. **Automation Rules**: What are the most common automation needs? (Usage data needed)
+5. **Notification Preferences**: What notification timing and frequency works best? (User testing needed)
+6. **Data Export Format**: What formats should be supported? (JSON, CSV, iCal?)
+7. **Offline Conflict Resolution**: How should conflicts be resolved when coming back online? (Last-write-wins vs. merge)
+
+</appendix>
+
+---
+
+<task-master-integration>
+# How Task Master Uses This PRD
+
+When you run `task-master parse-prd prd.txt`, the parser:
+
+1. **Extracts capabilities** → Main tasks
+   - Each `### Capability:` becomes a top-level task
+
+2. **Extracts features** → Subtasks
+   - Each `#### Feature:` becomes a subtask under its capability
+
+3. **Parses dependencies** → Task dependencies
+   - `Depends on: [X, Y]` sets task.dependencies = ["X", "Y"]
+
+4. **Orders by phases** → Task priorities
+   - Phase 0 tasks = highest priority
+   - Phase N tasks = lower priority, properly sequenced
+
+5. **Uses test strategy** → Test generation context
+   - Feeds test scenarios to Surgical Test Generator during implementation
+
+**Result**: A dependency-aware task graph that can be executed in topological order.
+
+## Why RPG Structure Matters
+
+Traditional flat PRDs lead to:
+- ❌ Unclear task dependencies
+- ❌ Arbitrary task ordering
+- ❌ Circular dependencies discovered late
+- ❌ Poorly scoped tasks
+
+RPG-structured PRDs provide:
+- ✅ Explicit dependency chains
+- ✅ Topological execution order
+- ✅ Clear module boundaries
+- ✅ Validated task graph before implementation
+
+## Tips for Best Results
+
+1. **Spend time on dependency graph** - This is the most valuable section for Task Master
+2. **Keep features atomic** - Each feature should be independently testable
+3. **Progressive refinement** - Start broad, use `task-master expand` to break down complex tasks
+4. **Use research mode** - `task-master parse-prd --research` leverages AI for better task generation
+</task-master-integration>
+

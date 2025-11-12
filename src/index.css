@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles for Leet-inspired dark theme */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  body {
+    @apply bg-dark-bg-primary text-dark-text-primary;
+    font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+  }
+}
+
+/* Component utilities */
+@layer components {
+  /* Focus visible styles for accessibility with purple accent */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:ring-offset-2;
+  }
+  
+  .focus-ring:focus {
+    --tw-ring-offset-color: #0B0E14;
+  }
+  
+  /* Button base styles - Leet-inspired gradient buttons */
+  .btn-base {
+    @apply inline-flex items-center justify-center rounded-[8px] font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none;
+    @apply focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:ring-offset-2;
+    font-weight: 500;
+  }
+  
+  .btn-base:focus {
+    --tw-ring-offset-color: #0B0E14;
+  }
+  
+  /* Input base styles - Leet-inspired glass effect */
+  .input-base {
+    @apply w-full rounded-[8px] border text-dark-text-primary placeholder:text-dark-text-secondary;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 16px;
+    @apply focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:ring-offset-2 focus:border-[#8B5CF6];
+    @apply transition-all duration-200;
+  }
+  
+  .input-base:focus {
+    --tw-ring-offset-color: #0B0E14;
+    border-color: #8B5CF6;
+  }
+  
+  /* Card with Leet-inspired styling */
+  .card-glow {
+    @apply bg-dark-bg-secondary border border-dark-border rounded-[12px];
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 24px 28px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    @apply transition-all duration-300;
+  }
+  
+  .card-glow:hover {
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 12px rgba(139, 92, 246, 0.2);
+  }
+  
+  /* Glass effect panel */
+  .glass-panel {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(10px);
+    @apply rounded-[12px] border border-dark-border;
+  }
+  
+  /* Section header styles */
+  .section-label {
+    @apply text-xs uppercase tracking-wider text-dark-text-tertiary;
+    letter-spacing: 1px;
+  }
+  
+  .section-heading {
+    @apply text-3xl font-bold text-dark-text-primary;
+  }
+  
+  .section-subtext {
+    @apply text-base text-dark-text-secondary;
+  }
+
+  /* Dashboard widget styles */
+  .widget-container {
+    @apply h-full overflow-hidden;
+  }
+
+  .widget-container .card-glow {
+    @apply h-full flex flex-col;
+    min-height: 100%;
+    max-height: 100%;
+  }
+
+  /* React Grid Layout dark theme overrides */
+  .react-grid-layout {
+    position: relative;
+  }
+
+  .react-grid-item {
+    transition: all 200ms ease;
+    transition-property: left, top, width, height;
+  }
+
+  .react-grid-item.cssTransforms {
+    transition-property: transform, width, height;
+  }
+
+  .react-grid-item.resizing {
+    transition: none;
+    z-index: 1;
+    will-change: width, height;
+  }
+
+  .react-grid-item.react-draggable-dragging {
+    transition: none;
+    z-index: 3;
+    will-change: transform;
+  }
+
+  .react-grid-item.dropping {
+    visibility: hidden;
+  }
+
+  .react-grid-item.react-grid-placeholder {
+    background: rgba(139, 92, 246, 0.2);
+    border: 2px dashed rgba(139, 92, 246, 0.5);
+    border-radius: 8px;
+    opacity: 0.5;
+    transition-duration: 100ms;
+    z-index: 2;
+    user-select: none;
+  }
+
+  .react-resizable-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    bottom: 0;
+    right: 0;
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Im0wIDZoNnYtNnoiIGZpbGw9InJnYmEoMTM5LCA5MiwgMjQ2LCAwLjMpIi8+PC9zdmc+');
+    background-position: bottom right;
+    padding: 0 3px 3px 0;
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    box-sizing: border-box;
+    cursor: se-resize;
+  }
+
+  .react-resizable-handle:hover {
+    background-color: rgba(139, 92, 246, 0.3);
+    border-radius: 4px;
+  }
+
+  .react-resizable-handle-se {
+    bottom: 0;
+    right: 0;
+    cursor: se-resize;
+  }
+}
+
