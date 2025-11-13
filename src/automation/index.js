@@ -6,4 +6,5 @@
  */
 
 export * from './models/index.js';
+export * from './triggers/index.js';
 

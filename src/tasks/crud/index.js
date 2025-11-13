@@ -21,6 +21,11 @@ import {
   stopAnyTimer,
   validateManualTimeEntry
 } from '../utils/timeTracking.js';
+import {
+  onTaskCreated,
+  onTaskCompleted,
+  onTaskUpdated
+} from '../../automation/triggers/taskLifecycleHooks.js';
 
 /**
  * Custom error class for task operations
@@ -77,6 +82,14 @@ export async function createTaskOperation(taskData) {
     // Store in IndexedDB
     await tasksStore.create(normalizedTask);
     console.log('[Adder] Task created successfully:', { id: normalizedTask.id, title: normalizedTask.title });
+    
+    // Trigger automation hooks
+    try {
+      await onTaskCreated(normalizedTask);
+    } catch (error) {
+      // Don't fail task creation if automation hook fails
+      console.error('[Automation] Error in task.created hook:', error);
+    }
     
     return normalizedTask;
   } catch (error) {
@@ -277,8 +290,26 @@ export async function updateTask(taskId, updates) {
       normalizedTask.completedAt = null;
     }
     
+    // Track status change for automation hooks
+    const statusChangedToCompleted = 
+      existingTask.status !== TASK_STATUSES.COMPLETED && 
+      normalizedTask.status === TASK_STATUSES.COMPLETED;
+    
     // Update in IndexedDB
     await tasksStore.update(taskId, normalizedTask);
+    
+    // Trigger automation hooks
+    try {
+      await onTaskUpdated(normalizedTask, existingTask);
+      
+      // If status changed to completed, also trigger completion hook
+      if (statusChangedToCompleted) {
+        await onTaskCompleted(normalizedTask);
+      }
+    } catch (error) {
+      // Don't fail task update if automation hook fails
+      console.error('[Automation] Error in task.updated hook:', error);
+    }
     
     return normalizedTask;
   } catch (error) {
