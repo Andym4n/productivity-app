@@ -15,6 +15,9 @@ build/
 *.swp
 *.swo
 
+# Cursor/MCP config (contains API keys)
+.cursor/mcp.json
+
 # OS
 .DS_Store
 Thumbs.db
